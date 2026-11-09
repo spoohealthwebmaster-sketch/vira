@@ -1,0 +1,13 @@
+{
+  "appId": "ir.vira.dashboard",
+  "appName": "Vira",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "always"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}

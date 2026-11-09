@@ -1,0 +1,61 @@
+name: Build unsigned iOS IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'css/**'
+      - 'js/**'
+      - 'ios-app/**'
+      - '.github/workflows/ios-build.yml'
+
+jobs:
+  build:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: ios-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Copy web files into www
+        run: npm run build:www
+
+      - name: Add iOS platform
+        run: npx cap add ios
+
+      - name: Sync web files into the iOS project
+        run: npx cap sync ios
+
+      - name: Archive without code signing
+        run: |
+          xcodebuild archive \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $RUNNER_TEMP/Vira.xcarchive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            | xcpretty || true
+          test -d $RUNNER_TEMP/Vira.xcarchive/Products/Applications/App.app
+
+      - name: Package IPA
+        run: |
+          mkdir -p $RUNNER_TEMP/ipa/Payload
+          cp -R $RUNNER_TEMP/Vira.xcarchive/Products/Applications/App.app $RUNNER_TEMP/ipa/Payload/
+          cd $RUNNER_TEMP/ipa
+          zip -qr $GITHUB_WORKSPACE/Vira-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Vira-unsigned-ipa
+          path: Vira-unsigned.ipa

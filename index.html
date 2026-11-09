@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ویرا | داشبورد هوشمند وبمستر</title>
+    <link rel="icon" type="image/png" href="icons/icon48.png">
+    <!-- فونت و استایل‌های بهینه‌شده -->
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="vendor/highlightjs/atom-one-dark.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Login / Register Screen (shown until a valid session token exists) -->
+    <div id="auth-screen">
+        <div class="auth-box glass-panel">
+            <div class="auth-logo"><i class="fa fa-compass"></i> ویرا</div>
+
+            <div id="auth-login-form">
+                <h2>ورود به حساب</h2>
+                <input type="email" id="auth-login-email" placeholder="ایمیل" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+                <div class="auth-password-wrap">
+                    <input type="password" id="auth-login-password" placeholder="رمز عبور" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+                    <button type="button" class="auth-toggle-pass-btn" data-toggle-pass="auth-login-password" title="نمایش/پنهان کردن رمز"><i class="fa fa-eye"></i></button>
+                </div>
+                <div class="auth-error" id="auth-login-error"></div>
+                <button class="btn-primary" id="auth-login-btn">ورود</button>
+                <p class="auth-switch">حساب ندارید؟ <a href="#" id="auth-show-register">ثبت‌نام کنید</a></p>
+            </div>
+
+            <div id="auth-register-form" style="display:none;">
+                <h2>ساخت حساب جدید</h2>
+                <input type="text" id="auth-register-name" placeholder="نام (اختیاری)" autocomplete="name">
+                <input type="email" id="auth-register-email" placeholder="ایمیل" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+                <div class="auth-password-wrap">
+                    <input type="password" id="auth-register-password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+                    <button type="button" class="auth-toggle-pass-btn" data-toggle-pass="auth-register-password" title="نمایش/پنهان کردن رمز"><i class="fa fa-eye"></i></button>
+                </div>
+                <input type="text" id="auth-register-invite" placeholder="کد دعوت" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+                <div class="auth-error" id="auth-register-error"></div>
+                <button class="btn-primary" id="auth-register-btn">ساخت حساب</button>
+                <p class="auth-switch">حساب دارید؟ <a href="#" id="auth-show-login">وارد شوید</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-shell" style="display:none;">
+
+    <!-- Top Navigation / Search Bar -->
+    <div class="top-bar glass-panel">
+        <div class="time-widget">
+            <h1 id="clock">00:00</h1>
+            <p id="date">درحال بارگذاری...</p>
+        </div>
+
+        <div class="weather-widget" id="weather-widget" title="آب و هوا">
+            <i class="fa fa-cloud-sun weather-icon" id="weather-icon"></i>
+            <div class="weather-info">
+                <span class="weather-temp" id="weather-temp">--°</span>
+                <span class="weather-city" id="weather-city">در حال دریافت...</span>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <div class="custom-select search-engine-select" id="search-engine-select"></div>
+            <i class="fa fa-search"></i>
+            <input type="text" id="global-search" placeholder="جستجو در وب یا فشردن Ctrl+K برای دستورات...">
+            <button class="icon-btn" id="cmd-palette-btn" style="width:28px; height:28px; font-size:0.75rem; flex-shrink:0;" title="پالت دستورات سریع (Ctrl+K)"><i class="fa fa-terminal"></i></button>
+            <button class="icon-btn" id="advanced-search-btn" style="width:28px; height:28px; font-size:0.7rem; flex-shrink:0;" title="جستجوی پیشرفته"><i class="fa fa-sliders-h"></i></button>
+
+            <div class="advanced-search-panel" id="advanced-search-panel">
+                <input type="text" id="adv-exact" placeholder="عبارت دقیق (داخل گیومه جستجو می‌شود)">
+                <input type="text" id="adv-exclude" placeholder="کلمات مستثنی (با فاصله جدا کنید)">
+                <div class="adv-row-2">
+                    <input type="text" id="adv-site" placeholder="فقط در این سایت (site:)">
+                    <input type="text" id="adv-intitle" placeholder="این کلمه در عنوان باشد">
+                </div>
+                <div class="custom-select" id="adv-filetype-select"></div>
+                <div class="adv-row-2">
+                    <input type="date" id="adv-after" title="از این تاریخ">
+                    <input type="date" id="adv-before" title="تا این تاریخ">
+                </div>
+                <button class="btn-primary" id="adv-search-run-btn">جستجوی پیشرفته در گوگل</button>
+                <p class="text-muted" style="font-size:0.72rem; margin:0;">این ترفندها مخصوص گوگل هستند؛ جستجوی پیشرفته همیشه در گوگل انجام می‌شود، صرف‌نظر از موتور انتخابی بالا.</p>
+            </div>
+        </div>
+
+        <!-- Hardware Monitor & Deep Focus -->
+        <div class="top-utility">
+            <div class="hw-monitor">
+                <span id="sys-ram">RAM: --%</span>
+                <span id="sys-cpu">CPU: --%</span>
+            </div>
+
+            <label class="switch" title="حالت تمرکز عمیق (بلاک سایت‌ها)">
+                <input type="checkbox" id="deep-focus-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="main-container">
+
+
+        <!-- Main Dashboard View -->
+        <div id="main-dashboard-view">
+            <div class="project-context-banner" id="project-context-banner">
+                <div class="project-context-dot" id="project-context-dot"></div>
+                <span>الان داخل فضای کاری <b id="project-context-name"></b> هستید — برای مشاهده برد کانبان و تسک‌های پروژه کلیک کنید</span>
+                <button class="btn-primary" id="project-context-open-notion-btn" style="margin-inline-start:auto; padding:0.4rem 0.9rem; font-size:0.8rem;"><i class="fa fa-columns"></i> باز کردن نمای نوشن</button>
+                <button class="btn-secondary" id="project-context-exit-btn" style="padding:0.4rem 0.8rem; font-size:0.8rem;">فضای عمومی</button>
+            </div>
+
+            <div class="widget-grid">
+
+                <!-- Widget: Projects / Workspaces -->
+                <div class="widget glass-panel col-8" data-widget="projects" id="widget-projects">
+                    <div class="widget-header">
+                        <h3><i class="fa fa-briefcase"></i> فضاهای کاری من (پروژه‌ها)</h3>
+                        <div style="display:flex; gap: 10px;">
+                            <button class="icon-btn" id="launch-workspace-btn" title="اجرای تمام بوک‌مارک‌های این فضا"><i class="fa fa-rocket"></i></button>
+                            <button class="icon-btn" id="new-project-btn" title="پروژه جدید"><i class="fa fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="project-list" id="project-list">
+                        <!-- Projects -->
+                    </div>
+                </div>
+
+                <!-- Widget: Pomodoro Timer -->
+                <div class="widget glass-panel col-4" data-widget="pomodoro" id="widget-pomodoro">
+                    <div class="widget-header">
+                        <h3><i class="fa fa-clock"></i> پومودورو</h3>
+                        <div style="display:flex; gap:6px;">
+                            <button class="icon-btn" id="pomodoro-mini-btn" data-desktop-only="1" hidden style="width:26px; height:26px; font-size:0.7rem;" title="باز کردن پنجره‌ی شناور"><i class="fa fa-up-right-and-down-left-from-center"></i></button>
+                            <button class="icon-btn" id="pomodoro-stats-btn" style="width:26px; height:26px; font-size:0.7rem;" title="آمار پومودورو"><i class="fa fa-chart-bar"></i></button>
+                        </div>
+                    </div>
+                    <div class="pomodoro-timer" style="text-align:center; flex:1; display:flex; flex-direction:column; justify-content:center;">
+                        <div id="pomodoro-time" style="font-size:3rem; font-weight:bold; letter-spacing:2px; font-family:monospace;">25:00</div>
+                        <div class="pomodoro-mode" id="pomodoro-mode">آماده برای شروع تمرکز</div>
+                        <div style="display:flex; justify-content:center; gap:10px; margin-top:10px;">
+                            <button class="btn-primary" id="pomodoro-start-btn">شروع</button>
+                            <button class="btn-secondary" id="pomodoro-reset-btn">ریست</button>
+                        </div>
+                        <div id="pomodoro-today-total" class="text-muted" style="font-size:0.8rem; margin-top:12px;">امروز: ۰ دقیقه کار کرده‌اید</div>
+                    </div>
+                </div>
+
+                <!-- Widget: Calendar -->
+                <div class="widget glass-panel col-4" data-widget="calendar" id="widget-calendar">
+                    <div class="widget-header">
+                        <h3><i class="fa fa-calendar-alt"></i> تقویم من</h3>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <button class="icon-btn" id="cal-prev-btn" style="width:26px; height:26px; font-size:0.7rem;" title="ماه قبل"><i class="fa fa-chevron-right"></i></button>
+                            <div id="calendar-header-title" style="font-size:0.9rem; font-weight:bold; min-width:88px; text-align:center;">مرداد 1405</div>
+                            <button class="icon-btn" id="cal-next-btn" style="width:26px; height:26px; font-size:0.7rem;" title="ماه بعد"><i class="fa fa-chevron-left"></i></button>
+                            <button class="icon-btn" id="cal-today-btn" style="width:26px; height:26px; font-size:0.65rem;" title="امروز"><i class="fa fa-dot-circle"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid">
+                        <div class="cal-day-name">ش</div>
+                        <div class="cal-day-name">ی</div>
+                        <div class="cal-day-name">د</div>
+                        <div class="cal-day-name">س</div>
+                        <div class="cal-day-name">چ</div>
+                        <div class="cal-day-name">پ</div>
+                        <div class="cal-day-name cal-friday-name">ج</div>
+                    </div>
+                    <div id="calendar-day-events" class="calendar-day-events"></div>
+                </div>
+
+                <!-- Widget: Portfolio & Market -->
+                <div class="widget glass-panel col-8" data-widget="market" id="widget-market">
+                    <div class="widget-header">
+                        <h3><i class="fa fa-chart-pie"></i> دارایی‌های من و بازار</h3>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <button class="icon-btn" id="open-finance-tracker-widget-btn" title="مدیریت مالی و اقساط ماهانه"><i class="fa fa-wallet"></i></button>
+                            <div id="total-net-worth" class="portfolio-value" style="font-size:1.1rem; font-weight:bold; color:var(--primary-color);">0 تومان</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:1rem;">
+                        <div style="flex:1; border-left:1px solid var(--glass-border); padding-left:1rem;">
+                            <h4 style="margin-bottom:10px; font-size:0.9rem; color:var(--text-muted);">قیمت‌های زنده</h4>
+                            <div id="market-prices-list" style="max-height:180px; overflow-y:auto; font-size:0.9rem; display:flex; flex-direction:column; gap:8px;">
+                                <div class="loading">در حال دریافت قیمت‌ها...</div>
+                            </div>
+                            <div id="market-prices-source" class="text-muted" style="font-size:0.68rem; margin-top:6px;"></div>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <h4 style="font-size:0.9rem; color:var(--text-muted);">پورتفولیوی من</h4>
+                                <button id="edit-assets-btn" class="icon-btn" style="width:24px; height:24px; font-size:0.7rem;"><i class="fa fa-edit"></i></button>
+                            </div>
+                            <div class="portfolio-privacy-wrap" id="portfolio-privacy-wrap" title="نمایش/پنهان کردن دارایی‌ها">
+                                <div class="portfolio-privacy-hint" id="portfolio-privacy-hint"><i class="fa fa-eye"></i> برای نمایش کلیک کنید</div>
+                                <div id="my-assets-list" class="portfolio-value" style="max-height:180px; overflow-y:auto; font-size:0.9rem; display:flex; flex-direction:column; gap:8px;">
+                                    <div class="text-muted">دارایی ثبت نشده است.</div>
+                                </div>
+                                <div class="portfolio-value" style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px solid var(--glass-border);">
+                                    <span style="font-size:0.85rem; color:var(--text-muted);">جمع کل دارایی</span>
+                                    <span id="portfolio-total" style="font-weight:bold; color:var(--primary-color); font-family:sans-serif;">0 تومان</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget: Mood & Motivation -->
+                <div class="widget glass-panel col-12" data-widget="mood" id="widget-mood">
+                    <div class="mood-quote-row">
+                        <div class="mood-quote-col">
+                            <h4 style="margin-bottom: 0.5rem; color: var(--text-muted); font-weight:normal; font-size:0.9rem;">جمله الهام‌بخش امروز</h4>
+                            <p id="daily-quote" style="font-style: italic; line-height:1.6; font-size:1.05rem;"></p>
+                            <span id="daily-quote-author" class="text-muted" style="font-size:0.75rem; display:block; margin-top:0.4rem;"></span>
+                        </div>
+                        <div class="mood-divider"></div>
+                        <div class="mood-picker-col">
+                            <h4 style="margin-bottom: 0.5rem; color: var(--text-muted); font-weight:normal; font-size:0.9rem;">حالت روحی شما چطور است؟</h4>
+                            <div style="display:flex; justify-content:center; gap: 1rem; font-size:2rem;" id="mood-selector">
+                                <span class="mood-emoji" data-mood="excited">🤩</span>
+                                <span class="mood-emoji" data-mood="happy">😊</span>
+                                <span class="mood-emoji" data-mood="neutral">😐</span>
+                                <span class="mood-emoji" data-mood="tired">😴</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget: Pet Cat -->
+                <div class="widget glass-panel col-12" data-widget="cat" id="widget-cat">
+                    <div class="cat-widget-row">
+                        <div class="cat-widget-info-col">
+                            <h4 style="margin-bottom: 0.5rem; color: var(--text-muted); font-weight:normal; font-size:0.9rem;">گربه‌ی خانگی</h4>
+                            <span id="cat-level-text" style="font-weight:700; font-size:1.05rem; display:block; margin-bottom:0.75rem;">گربه شما (سطح ۱)</span>
+                            <div class="cat-actions-popover" id="cat-actions-popover">
+                                <button class="cat-action-btn" id="cat-act-feed" title="غذا دادن"><i class="fa fa-fish"></i> غذا</button>
+                                <button class="cat-action-btn" id="cat-act-pet" title="نوازش"><i class="fa fa-heart"></i> ناز</button>
+                                <button class="cat-action-btn" id="cat-act-walk" title="قدم زدن آزاد روی صفحه"><i class="fa fa-paw"></i> قدم زدن</button>
+                                <button class="cat-action-btn" id="cat-act-follow" title="دنبال کردن موس"><i class="fa fa-crosshairs"></i> بازی</button>
+                            </div>
+                        </div>
+                        <div class="mood-divider"></div>
+                        <div class="cat-widget-stage-col">
+                            <div class="cat-widget" id="cat-widget">
+                                <div class="cat-stage" id="cat-stage">
+                                    <div class="cat-bubble" id="cat-bubble">میو! 🐾</div>
+                                    <div class="cat-ground-shadow"></div>
+                                    <div class="cat-character-wrap cat-idle" id="cat-character-wrap" title="برای نوازش یا غذا دادن کلیک کنید!">
+                                        <svg class="cat-svg-anim" id="cat-svg-anim" viewBox="0 0 120 100" width="110" height="92">
+                                            <defs>
+                                                <linearGradient id="catFurGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                    <stop offset="0%" stop-color="#fb923c" />
+                                                    <stop offset="100%" stop-color="#ea580c" />
+                                                </linearGradient>
+                                            </defs>
+                                            <!-- Tail -->
+                                            <g class="cat-tail-group">
+                                                <path d="M 30 65 Q 12 50 10 26 Q 16 16 22 30 Q 24 50 34 68" fill="url(#catFurGradient)" class="cat-fur-orange" />
+                                                <path d="M 10 26 Q 12 18 18 22 Q 20 28 16 32 Z" fill="#fff7ed" />
+                                            </g>
+                                            <!-- Back Leg (Left) -->
+                                            <g class="cat-leg-node cat-leg-bl">
+                                                <ellipse cx="38" cy="70" rx="7" ry="12" fill="#ea580c" />
+                                                <ellipse cx="38" cy="82" rx="6" ry="4" fill="#fed7aa" class="cat-paw" />
+                                            </g>
+                                            <!-- Back Leg (Right) -->
+                                            <g class="cat-leg-node cat-leg-br">
+                                                <ellipse cx="50" cy="70" rx="7" ry="12" fill="#ea580c" />
+                                                <ellipse cx="50" cy="82" rx="6" ry="4" fill="#fed7aa" class="cat-paw" />
+                                            </g>
+                                            <!-- Body -->
+                                            <g class="cat-body-group">
+                                                <ellipse cx="56" cy="60" rx="26" ry="18" fill="url(#catFurGradient)" class="cat-fur-orange" />
+                                                <!-- Belly -->
+                                                <ellipse cx="58" cy="62" rx="16" ry="12" fill="#fff7ed" />
+                                                <!-- Stripes -->
+                                                <path d="M 46 48 Q 50 56 46 62" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                                                <path d="M 56 46 Q 60 55 56 61" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                                                <path d="M 66 48 Q 70 56 66 62" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" fill="none" />
+                                            </g>
+                                            <!-- Front Leg (Left) -->
+                                            <g class="cat-leg-node cat-leg-fl">
+                                                <ellipse cx="68" cy="70" rx="6" ry="13" fill="#f97316" />
+                                                <ellipse cx="68" cy="83" rx="5.5" ry="4" fill="#fff7ed" class="cat-paw" />
+                                            </g>
+                                            <!-- Front Leg (Right) -->
+                                            <g class="cat-leg-node cat-leg-fr">
+                                                <ellipse cx="78" cy="70" rx="6" ry="13" fill="#f97316" />
+                                                <ellipse cx="78" cy="83" rx="5.5" ry="4" fill="#fff7ed" class="cat-paw" />
+                                            </g>
+                                            <!-- Head -->
+                                            <g class="cat-head-group">
+                                                <!-- Ears -->
+                                                <g class="cat-ear cat-ear-l">
+                                                    <polygon points="70,30 80,8 88,32" fill="#f97316" />
+                                                    <polygon points="73,28 80,14 85,29" fill="#f43f5e" />
+                                                </g>
+                                                <g class="cat-ear cat-ear-r">
+                                                    <polygon points="90,32 98,8 106,32" fill="#f97316" />
+                                                    <polygon points="93,29 98,14 103,28" fill="#f43f5e" />
+                                                </g>
+                                                <!-- Face -->
+                                                <circle cx="88" cy="38" r="18" fill="url(#catFurGradient)" class="cat-fur-orange" />
+                                                <ellipse cx="88" cy="44" rx="12" ry="9" fill="#fff7ed" />
+                                                <!-- Eyes -->
+                                                <g class="cat-eyes-group">
+                                                    <ellipse cx="82" cy="36" rx="4" ry="4.5" fill="#1e293b" class="cat-eye-pupil" />
+                                                    <circle cx="83.5" cy="34.5" r="1.5" fill="#ffffff" />
+                                                    <ellipse cx="94" cy="36" rx="4" ry="4.5" fill="#1e293b" class="cat-eye-pupil" />
+                                                    <circle cx="95.5" cy="34.5" r="1.5" fill="#ffffff" />
+                                                </g>
+                                                <!-- Nose & Mouth -->
+                                                <polygon points="86,41 90,41 88,44" fill="#f43f5e" />
+                                                <path d="M 85 45 Q 88 48 88 45 Q 88 48 91 45" stroke="#1e293b" stroke-width="1.5" fill="none" stroke-linecap="round" />
+                                                <!-- Whiskers -->
+                                                <g stroke="#fed7aa" stroke-width="1.5" stroke-linecap="round">
+                                                    <line x1="78" y1="42" x2="66" y2="40" />
+                                                    <line x1="78" y1="45" x2="65" y2="46" />
+                                                    <line x1="98" y1="42" x2="110" y2="40" />
+                                                    <line x1="98" y1="45" x2="111" y2="46" />
+                                                </g>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Widget: Tasks & Daily Focus -->
+                <div class="widget glass-panel col-6" data-widget="tasks" id="widget-tasks">
+                    <div class="widget-header">
+                        <h3><i class="fa fa-check-square"></i> تسک‌ها</h3>
+                        <button class="icon-btn" id="open-notion-board-widget-btn" title="نمای تمام‌صفحه کانبان"><i class="fa fa-columns"></i></button>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-bottom:12px;">
+                        <button class="icon-btn" id="add-task-btn" style="background:var(--primary-color); color:#fff;"><i class="fa fa-plus"></i></button>
+                        <input type="text" id="task-input" placeholder="تسک جدید (! برای هدف اصلی)...">
+                    </div>
+                    <ul class="task-list" id="task-list">
+                        <!-- Tasks -->
+                    </ul>
+                </div>
+
+                <!-- Widget: Habits & Routines -->
+                <div class="widget glass-panel col-6" data-widget="habits" id="widget-habits">
+                    <div class="widget-header">
+                        <h3><i class="fa fa-check-double"></i> عادات روزانه وبمستر</h3>
+                        <button class="icon-btn" id="new-habit-btn" title="عادت جدید" style="width:26px; height:26px; font-size:0.7rem;"><i class="fa fa-plus"></i></button>
+                    </div>
+                    <div id="habits-list" style="display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto;">
+                        <div class="text-muted" style="font-size:0.85rem;">عادتی ثبت نشده است.</div>
+                    </div>
+                </div>
+
+                <!-- Widget: Bookmarks -->
+                <div class="widget glass-panel col-12" data-widget="bookmarks" id="widget-bookmarks">
+                    <div class="widget-header">
+                        <h3><i class="fa fa-bookmark"></i> بوک‌مارک‌های من</h3>
+                        <button class="icon-btn" id="add-bookmark-btn"><i class="fa fa-plus"></i></button>
+                    </div>
+                    <div class="bookmark-categories" id="bookmark-categories">
+                        <span class="cat-badge active" data-cat-id="">همه</span>
+                    </div>
+                    <div class="bookmark-list" id="bookmark-list">
+                    </div>
+                </div>
+
+                <!-- Widget: Dev Tools & Snippets -->
+                <div class="widget glass-panel col-12" data-widget="devtools" id="widget-devtools">
+                    <div class="widget-header">
+                        <h3><i class="fa fa-code"></i> ابزارهای توسعه و هوش مصنوعی</h3>
+                    </div>
+                    <div class="tools-grid" id="tools-grid">
+                        <div class="tool-btn" data-tool="enhancer"><i class="fa fa-wand-magic-sparkles" style="color:#38bdf8;"></i> شفاف‌ساز و ارتقای عکس</div>
+                        <div class="tool-btn" data-tool="timetracker"><i class="fa fa-stopwatch-20" style="color:#ec4899;"></i> ردیاب زمان وبگردی</div>
+                        <div class="tool-btn" data-tool="irandev"><i class="fa fa-id-card" style="color:#22c55e;"></i> اعتبارسنج کدملی و کارت</div>
+                        <div class="tool-btn" data-tool="finance"><i class="fa fa-calculator" style="color:#eab308;"></i> محاسبه وام و ارزش‌افزوده</div>
+                        <div class="tool-btn" data-tool="vectorizer"><i class="fa fa-bezier-curve" style="color:#a855f7;"></i> تبدیل عکس به وکتور SVG</div>
+                        <div class="tool-btn" data-tool="imgpalette"><i class="fa fa-eye-dropper" style="color:#f97316;"></i> استخراج پالت از عکس</div>
+                        <div class="tool-btn" data-tool="bgremover"><i class="fa fa-eraser" style="color:#06b6d4;"></i> حذف پس‌زمینه تصویر</div>
+                        <div class="tool-btn" data-tool="ai"><i class="fa fa-robot" style="color:var(--primary-color);"></i> دستیار هوش مصنوعی</div>
+                        <div class="tool-btn" data-tool="vault"><i class="fa fa-shield-alt" style="color:#ffd60a;"></i> گاوصندوق رمزها</div>
+                        <div class="tool-btn" data-tool="tempmail"><i class="fa fa-envelope"></i> ایمیل موقت</div>
+                        <div class="tool-btn" data-tool="squoosh"><i class="fa fa-image"></i> فشرده‌ساز عکس</div>
+                        <div class="tool-btn" data-tool="json"><i class="fa fa-code"></i> ادیتور JSON</div>
+                        <div class="tool-btn" data-tool="color"><i class="fa fa-palette"></i> رنگ و گرادیانت</div>
+                        <div class="tool-btn" data-tool="qr"><i class="fa fa-qrcode"></i> بارکدساز</div>
+                        <div class="tool-btn" data-tool="lorem"><i class="fa fa-align-left"></i> متن لورم ایپسوم</div>
+                        <div class="tool-btn" data-tool="slug"><i class="fa fa-link"></i> اسلاگ‌ساز فارسی</div>
+                        <div class="tool-btn" data-tool="leakcheck"><i class="fa fa-user-shield"></i> بررسی نشت اطلاعات</div>
+                        <div class="tool-btn" data-tool="downloader"><i class="fa fa-download"></i> دانلودر تصویر و ویدیو</div>
+                        <div class="tool-btn" data-tool="fakedata"><i class="fa fa-user-secret"></i> دیتای فیک</div>
+                        <div class="tool-btn" data-tool="jwt"><i class="fa fa-key"></i> دیکدر JWT</div>
+                        <div class="tool-btn" data-tool="contrast"><i class="fa fa-adjust"></i> کنتراست رنگ</div>
+                        <div class="tool-btn" data-tool="seo"><i class="fa fa-tachometer-alt"></i> بررسی سئو</div>
+                        <div class="tool-btn" data-tool="article"><i class="fa fa-pen-nib"></i> مقاله‌نویس</div>
+                        <div class="tool-btn" data-tool="reaction"><i class="fa fa-bolt"></i> بازی واکنش</div>
+                        <div class="tool-btn" data-tool="hafez"><i class="fa fa-feather"></i> فال حافظ</div>
+                        <div class="tool-btn" data-tool="movie"><i class="fa fa-tv" style="color:#a855f7;"></i> ردیاب فیلم و سریال (تی‌وی تایم)</div>
+                        <div class="tool-btn" data-tool="ledger"><i class="fa fa-wallet" style="color:#22c55e;"></i> مدیریت مالی و اقساط</div>
+                        <div class="tool-btn" data-tool="myip"><i class="fa fa-network-wired"></i> آی‌پی من</div>
+                        <div class="tool-btn" data-tool="systemhealth" data-desktop-only="1" hidden><i class="fa fa-heart-pulse" style="color:#ef4444;"></i> سلامت سیستم</div>
+                        <div class="tool-btn" data-tool="newsdigest"><i class="fa fa-newspaper"></i> اخبار روز</div>
+                    </div>
+                </div>
+
+                <!-- Widget: Markdown Notes & Snippets Library -->
+                <div class="widget glass-panel col-12" data-widget="notes" id="widget-notes">
+                    <div class="widget-header">
+                        <h3><i class="fa fa-sticky-note"></i> کتابخانه قطعه‌کد، یادداشت و شواهد</h3>
+                        <button class="icon-btn" id="snippet-toggle-btn" title="تغییر حالت به کد"><i class="fa fa-code"></i></button>
+                    </div>
+                    <div class="notes-layout">
+                        <div class="notes-sidebar">
+                            <div class="notes-sidebar-header">
+                                <span>یادداشت‌ها و شواهد</span>
+                                <div style="display:flex; gap:4px;">
+                                    <button class="icon-btn" style="width:26px; height:26px; font-size:0.75rem;" id="notes-ai-ask-btn" title="پرسش از AI درباره شواهد و یادداشت‌ها"><i class="fa fa-robot"></i></button>
+                                    <button class="icon-btn" style="width:26px; height:26px; font-size:0.75rem;" id="new-note-btn" title="یادداشت جدید"><i class="fa fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <ul class="notes-list" id="notes-list"></ul>
+                        </div>
+                        <div class="notes-editor">
+                            <a href="#" target="_blank" rel="noopener noreferrer" id="note-source-badge" class="note-source-badge" style="display:none;"><i class="fa fa-link"></i> <span id="note-source-badge-text"></span></a>
+                            <textarea id="note-textarea" placeholder="یادداشت‌های خود را اینجا بنویسید (یا در حالت کد قرار دهید)..." style="height:150px; font-family:monospace; direction:ltr;"></textarea>
+                            <pre id="snippet-preview" style="display:none; height:150px; overflow:auto; border-radius:12px; margin:0;"><code class="language-javascript" id="snippet-code"></code></pre>
+                            <div id="note-status" class="status-text"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Dedicated Notion-Style Project Workspace View -->
+    <div class="notion-workspace-view" id="notion-workspace-view" style="display:none;">
+        <div class="notion-header glass-panel">
+            <div class="notion-header-top">
+                <div class="notion-breadcrumb">
+                    <button class="icon-btn" id="notion-back-btn" title="بازگشت به داشبورد اصلی"><i class="fa fa-arrow-right"></i></button>
+                    <div class="notion-proj-icon" id="notion-proj-icon"></div>
+                    <div class="notion-proj-title-wrap">
+                        <h2 id="notion-proj-title">فضای کاری پروژه</h2>
+                        <div class="notion-proj-meta">
+                            <a href="#" target="_blank" id="notion-proj-link" class="notion-domain-link" style="display:none;"><i class="fa fa-link"></i> <span id="notion-proj-domain"></span></a>
+                            <span class="uptime-badge" id="notion-uptime-badge" style="display:none;"><i class="fa fa-circle"></i> در حال بررسی سرور...</span>
+                            <span class="ssl-badge" id="notion-ssl-badge" style="display:none;"><i class="fa fa-lock"></i> SSL: --</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="notion-toolbar">
+                    <div class="notion-view-switch">
+                        <button class="view-btn active" id="view-board-btn"><i class="fa fa-columns"></i> نمای برد کانبان</button>
+                        <button class="view-btn" id="view-list-btn"><i class="fa fa-list"></i> نمای لیستی</button>
+                    </div>
+                    <button class="btn-secondary" id="notion-save-tabs-btn" title="ذخیره تمام تب‌های باز مرورگر در این پروژه"><i class="fa fa-layer-group"></i> ذخیره تب‌ها</button>
+                    <button class="btn-secondary" id="notion-launch-btn" title="اجرای تمام بوک‌مارک‌ها"><i class="fa fa-rocket"></i> باز کردن بوک‌مارک‌ها</button>
+                    <button class="btn-primary" id="notion-add-task-btn"><i class="fa fa-plus"></i> تسک جدید</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notion Kanban Board -->
+        <div class="notion-board-container" id="notion-board-container">
+            <div class="kanban-column" data-status="todo" id="kanban-col-todo">
+                <div class="kanban-col-header">
+                    <div class="col-title"><i class="fa fa-circle-notch text-muted"></i> در انتظار انجام</div>
+                    <span class="col-count" id="count-todo">۰</span>
+                </div>
+                <div class="kanban-cards-list" id="cards-todo"></div>
+                <button class="kanban-add-btn" data-status="todo"><i class="fa fa-plus"></i> کارت جدید</button>
+            </div>
+
+            <div class="kanban-column" data-status="doing" id="kanban-col-doing">
+                <div class="kanban-col-header">
+                    <div class="col-title"><i class="fa fa-bolt" style="color:#0a84ff;"></i> در حال انجام</div>
+                    <span class="col-count" id="count-doing">۰</span>
+                </div>
+                <div class="kanban-cards-list" id="cards-doing"></div>
+                <button class="kanban-add-btn" data-status="doing"><i class="fa fa-plus"></i> کارت جدید</button>
+            </div>
+
+            <div class="kanban-column" data-status="review" id="kanban-col-review">
+                <div class="kanban-col-header">
+                    <div class="col-title"><i class="fa fa-eye" style="color:#ffd60a;"></i> در حال بازبینی</div>
+                    <span class="col-count" id="count-review">۰</span>
+                </div>
+                <div class="kanban-cards-list" id="cards-review"></div>
+                <button class="kanban-add-btn" data-status="review"><i class="fa fa-plus"></i> کارت جدید</button>
+            </div>
+
+            <div class="kanban-column" data-status="done" id="kanban-col-done">
+                <div class="kanban-col-header">
+                    <div class="col-title"><i class="fa fa-check-circle" style="color:#32d74b;"></i> تکمیل شده</div>
+                    <span class="col-count" id="count-done">۰</span>
+                </div>
+                <div class="kanban-cards-list" id="cards-done"></div>
+                <button class="kanban-add-btn" data-status="done"><i class="fa fa-plus"></i> کارت جدید</button>
+            </div>
+        </div>
+
+        <!-- Notion List View -->
+        <div class="notion-list-container glass-panel" id="notion-list-container" style="display:none;">
+            <div class="notion-list-items" id="notion-list-items"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Dock Navigation -->
+    <div class="bottom-dock glass-panel">
+        <div class="dock-profile">
+            <img src="icons/icon48.png" alt="Profile" class="avatar" style="border-radius:10px;">
+            <span>ویرا داشبورد</span>
+        </div>
+        <div class="dock-icons">
+            <div class="dock-group">
+                <div class="dock-item active" id="dock-home-btn" title="داشبورد اصلی"><i class="fa fa-home"></i></div>
+                <div class="dock-item" id="dock-projects-btn" title="فضاهای کاری"><i class="fa fa-briefcase"></i></div>
+                <div class="dock-item" id="dock-all-tasks-btn" title="همه‌ی تسک‌ها (همه‌ی پروژه‌ها)"><i class="fa fa-layer-group"></i></div>
+            </div>
+            <div class="dock-divider"></div>
+            <div class="dock-group">
+                <div class="dock-item" id="dock-cmd-btn" title="پالت دستورات (Ctrl+K)"><i class="fa fa-terminal"></i></div>
+                <div class="dock-item" id="dock-ai-btn" title="دستیار هوش مصنوعی"><i class="fa fa-robot"></i></div>
+                <div class="dock-item" id="dock-chat-btn" title="چت با دوست/همکار" style="position:relative;"><i class="fa fa-comments"></i><span id="dock-chat-badge" style="display:none; position:absolute; top:2px; left:2px; background:var(--danger-color); color:#fff; border-radius:50%; min-width:16px; height:16px; font-size:0.62rem; display:flex; align-items:center; justify-content:center; padding:0 3px;"></span></div>
+                <div class="dock-item" id="dock-vault-btn" title="گاوصندوق رمزها"><i class="fa fa-shield-alt"></i></div>
+            </div>
+            <div class="dock-divider"></div>
+            <div class="dock-group">
+                <div class="dock-item" id="theme-toggle-btn" title="حالت روز/شب"><i class="fa fa-moon"></i></div>
+                <div class="dock-item" id="dock-settings-btn" title="تنظیمات"><i class="fa fa-cog"></i></div>
+                <div class="dock-item" id="dock-logout-btn" title="خروج از حساب"><i class="fa fa-sign-out-alt"></i></div>
+            </div>
+        </div>
+    </div>
+
+    </div> <!-- /#app-shell -->
+
+    <!-- Notion-Style Task Detail Drawer -->
+    <div class="modal-overlay" id="task-drawer-overlay">
+        <div class="task-drawer glass-panel" id="task-drawer">
+            <div class="drawer-header">
+                <div class="drawer-header-left">
+                    <div class="custom-select" id="drawer-project-select" style="min-width:150px; width:auto;"></div>
+                    <span class="drawer-date-badge" id="drawer-date-badge">بدون تاریخ</span>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="icon-btn" id="drawer-delete-btn" title="حذف این تسک" style="color:var(--danger-color);"><i class="fa fa-trash"></i></button>
+                    <button class="icon-btn" id="close-drawer-btn"><i class="fa fa-times"></i></button>
+                </div>
+            </div>
+
+            <input type="text" id="drawer-task-title" class="drawer-title-input" placeholder="عنوان وظیفه...">
+
+            <div class="drawer-properties-grid">
+                <div class="prop-row">
+                    <span class="prop-label"><i class="fa fa-spinner"></i> وضعیت</span>
+                    <div class="custom-select" id="drawer-status-select"></div>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label"><i class="fa fa-flag"></i> اولویت</span>
+                    <div class="custom-select" id="drawer-priority-select"></div>
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label"><i class="fa fa-calendar"></i> تاریخ تحویل</span>
+                    <input type="text" id="drawer-task-date" placeholder="مثال: 1405-5-20" class="drawer-prop-input">
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label"><i class="fa fa-tags"></i> برچسب‌ها</span>
+                    <input type="text" id="drawer-task-tags" placeholder="تگ‌ها با ویرگول (سئو، فرانت‌اند...)" class="drawer-prop-input">
+                </div>
+                <div class="prop-row">
+                    <span class="prop-label"><i class="fa fa-link"></i> لینک پیوست</span>
+                    <input type="url" id="drawer-task-links" placeholder="https://..." class="drawer-prop-input" style="direction:ltr; text-align:left;">
+                </div>
+            </div>
+
+            <!-- Subtasks Checklist Section -->
+            <div class="drawer-section">
+                <div class="drawer-section-title">
+                    <span><i class="fa fa-list-check" style="color:var(--primary-color);"></i> چک‌لیست ساب‌تسک‌ها</span>
+                    <span style="display:flex; align-items:center; gap:8px;">
+                        <button class="icon-btn" id="drawer-ai-subtasks-btn" style="width:24px; height:24px; font-size:0.7rem;" title="پیشنهاد ساب‌تسک با AI"><i class="fa fa-robot"></i></button>
+                        <span class="subtasks-progress-num" id="subtasks-progress-num">۰٪</span>
+                    </span>
+                </div>
+                <div class="subtasks-progress-track">
+                    <div class="subtasks-progress-fill" id="subtasks-progress-fill"></div>
+                </div>
+                <div class="subtasks-list" id="drawer-subtasks-list"></div>
+                <div class="add-subtask-row">
+                    <input type="text" id="drawer-new-subtask-input" placeholder="افزودن ساب‌تسک جدید (Enter)...">
+                    <button class="icon-btn" id="drawer-add-subtask-btn"><i class="fa fa-plus"></i></button>
+                </div>
+            </div>
+
+            <!-- Description / Notes Section -->
+            <div class="drawer-section" style="flex:1; display:flex; flex-direction:column;">
+                <div class="drawer-section-title">
+                    <span><i class="fa fa-align-right" style="color:var(--primary-color);"></i> توضیحات و یادداشت تکمیلی</span>
+                </div>
+                <textarea id="drawer-task-description" placeholder="جزئیات، مستندات و کدهای مربوط به این تسک را اینجا بنویسید..." style="width:100%; min-height:140px; border-radius:12px; padding:0.8rem; background:rgba(128,128,128,0.06); border:1px solid var(--glass-border); color:var(--text-color); font-family:inherit; resize:vertical;"></textarea>
+            </div>
+
+            <button class="btn-primary" id="drawer-save-btn" style="width:100%; margin-top:1rem; padding:0.8rem;">ذخیره تغییرات تسک</button>
+        </div>
+    </div>
+
+    <!-- Global Command Palette (Ctrl+K) -->
+    <div class="modal-overlay" id="cmd-palette-overlay">
+        <div class="cmd-palette-modal glass-panel" id="cmd-palette-modal">
+            <div class="cmd-palette-input-wrap">
+                <i class="fa fa-search"></i>
+                <input type="text" id="cmd-palette-input" placeholder="جستجوی تسک‌ها، پروژه‌ها، ابزارها یا تایپ دستور...">
+                <span class="cmd-badge">ESC</span>
+            </div>
+            <div class="cmd-palette-results" id="cmd-palette-results"></div>
+            <div class="cmd-palette-footer">
+                <span><kbd>↑</kbd> <kbd>↓</kbd> جابجایی</span>
+                <span><kbd>Enter</kbd> اجرا</span>
+                <span><kbd>ESC</kbd> خروج</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div class="modal-overlay" id="ai-assistant-modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:650px; height:80vh; display:flex; flex-direction:column;">
+            <div class="modal-header">
+                <h3><i class="fa fa-robot" style="color:var(--primary-color);"></i> دستیار هوش مصنوعی وبمستر</h3>
+                <button class="icon-btn" id="close-ai-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div class="ai-prompts-chips">
+                <button class="chip-btn" data-prompt="یک متاتگ Title و Description جذاب برای سئو صفحه اصلی این وب‌سایت بنویس">🎯 سئو متاتگ</button>
+                <button class="chip-btn" data-prompt="کد اسکیما JSON-LD مناسب برای یک وب‌سایت خدماتی/فروشگاهی بساز">🧩 اسکیما کد</button>
+                <button class="chip-btn" data-prompt="۵ ایده مقاله ترند و پرسرچ برای وبلاگ من پیشنهاد بده">💡 ایده مقاله</button>
+                <button class="chip-btn" data-prompt="این قطعه کد CSS را بررسی و خطاهای رسپانسیو و کارایی آن را رفع کن: ">⚡ دیباگ CSS</button>
+            </div>
+            <div class="ai-chat-output" id="ai-chat-output">
+                <div class="ai-msg bot">سلام! من دستیار هوش مصنوعی شما هستم. چطور می‌توانم در مدیریت وب‌سایت، سئو، کدنویسی و تولید محتوا به شما کمک کنم؟</div>
+            </div>
+            <div class="ai-input-wrap">
+                <textarea id="ai-prompt-input" placeholder="سؤال یا پرامپت خود را بنویسید (Enter برای ارسال)..."></textarea>
+                <button class="btn-primary" id="ai-send-btn"><i class="fa fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Internal Chat Modal -->
+    <div class="modal-overlay" id="chat-modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:750px; height:80vh; display:flex; flex-direction:column; padding:0;">
+            <div class="modal-header" style="padding:1.25rem 1.5rem;">
+                <h3><i class="fa fa-comments" style="color:var(--primary-color);"></i> چت با دوست/همکار</h3>
+                <button class="icon-btn" id="close-chat-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div style="display:flex; flex:1; overflow:hidden; border-top:1px solid var(--glass-border);">
+                <div id="chat-users-list" style="width:190px; overflow-y:auto; border-left:1px solid var(--glass-border); flex-shrink:0;"></div>
+                <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+                    <div class="ai-chat-output" id="chat-messages-output" style="flex:1;">
+                        <p class="text-muted" style="text-align:center; padding:2rem;">یه نفر رو از لیست انتخاب کن تا چتش رو ببینی.</p>
+                    </div>
+                    <div class="ai-input-wrap" id="chat-input-wrap" style="display:none;">
+                        <textarea id="chat-message-input" placeholder="پیام بنویس... (Enter برای ارسال)"></textarea>
+                        <button class="btn-primary" id="chat-send-btn"><i class="fa fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Encrypted Secret Vault Modal -->
+    <div class="modal-overlay" id="vault-modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:560px;">
+            <div class="modal-header">
+                <h3><i class="fa fa-shield-alt" style="color:var(--primary-color);"></i> گاوصندوق رمزنگاری‌شده (AES-256)</h3>
+                <button class="icon-btn" id="close-vault-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div id="vault-auth-screen" style="text-align:center; padding:1.5rem 0;">
+                <i class="fa fa-lock" style="font-size:3rem; color:var(--primary-color); margin-bottom:1rem;"></i>
+                <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">برای دسترسی به کلیدها، رمز مستر خود را وارد کنید. داده‌ها با کلید شما در مرورگر دیکریپت می‌شوند.</p>
+                <input type="password" id="vault-master-pass" placeholder="رمز اصلی گاوصندوق..." style="width:100%; max-width:320px; padding:0.7rem; border-radius:10px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.1); color:var(--text-color); margin-bottom:1rem; text-align:center;">
+                <button class="btn-primary" id="vault-unlock-btn" style="width:100%; max-width:320px;">باز کردن قفل گاوصندوق</button>
+            </div>
+            <div id="vault-content-screen" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h4 style="font-size:0.95rem; color:var(--text-muted);">اطلاعات محرمانه و کلیدها</h4>
+                    <button class="btn-secondary" id="vault-new-item-btn" style="padding:0.4rem 0.8rem; font-size:0.8rem;"><i class="fa fa-plus"></i> کلید جدید</button>
+                </div>
+                <div id="vault-items-list" style="display:flex; flex-direction:column; gap:0.6rem; max-height:300px; overflow-y:auto;"></div>
+            </div>
+            <div id="vault-item-form-screen" style="display:none;">
+                <div style="display:flex; flex-direction:column; gap:1rem;">
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.4rem;">عنوان کلید یا حساب</label>
+                        <input type="text" id="vault-form-title" placeholder="مثال: پنل هاست، ایمیل شرکتی..." style="width:100%; padding:0.7rem; border-radius:10px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color);">
+                    </div>
+                    <div>
+                        <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.4rem;">مقدار محرمانه (رمز عبور یا API Key)</label>
+                        <div style="position:relative;">
+                            <input type="text" id="vault-form-value" placeholder="رمز عبور یا کلید را وارد کن، یا تولید کن..." style="width:100%; padding:0.7rem 6.2rem 0.7rem 0.7rem; border-radius:10px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color); direction:ltr; text-align:left; font-family:monospace;">
+                            <div style="position:absolute; top:50%; left:6px; transform:translateY(-50%); display:flex; gap:4px;">
+                                <button type="button" class="icon-btn" id="vault-form-generate-btn" title="تولید رمز قوی" style="width:28px; height:28px; font-size:0.75rem;"><i class="fa fa-dice"></i></button>
+                                <button type="button" class="icon-btn" id="vault-form-copy-btn" title="کپی" style="width:28px; height:28px; font-size:0.75rem;"><i class="fa fa-copy"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="vault-form-strength" class="text-muted" style="font-size:0.75rem;"></div>
+                    <div id="vault-form-error" style="font-size:0.8rem; color:var(--danger-color); display:none;"></div>
+                    <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:0.5rem;">
+                        <button class="btn-secondary" id="vault-form-cancel-btn">انصراف</button>
+                        <button class="btn-primary" id="vault-form-save-btn">ذخیره</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Dev Tool Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3 id="modal-title">عنوان ابزار</h3>
+                <button class="icon-btn" id="close-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div id="modal-body" class="modal-body">
+            </div>
+        </div>
+    </div>
+
+    <!-- Assets Edit Modal -->
+    <div class="modal-overlay" id="assets-modal-overlay">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3>ویرایش دارایی‌ها</h3>
+                <button class="icon-btn" id="close-assets-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div id="assets-modal-body" class="modal-body" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            </div>
+            <button class="btn-primary" style="margin-top:1.5rem; width:100%;" id="save-assets-btn">ذخیره دارایی‌ها</button>
+        </div>
+    </div>
+
+    <!-- Generic Confirm/Prompt Modal -->
+    <div class="modal-overlay" id="confirm-modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:420px;">
+            <div class="modal-header">
+                <h3 id="confirm-modal-title">تأیید</h3>
+            </div>
+            <p id="confirm-modal-message" style="margin-bottom:1rem; line-height:1.8;"></p>
+            <div id="confirm-modal-input-wrap" style="margin-bottom:1rem; display:none;">
+                <input type="text" id="confirm-modal-input" style="width:100%; padding:0.6rem; border-radius:8px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color);">
+            </div>
+            <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                <button class="btn-secondary" id="confirm-modal-cancel-btn">انصراف</button>
+                <button class="btn-primary" id="confirm-modal-ok-btn">تأیید</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Project Modal -->
+    <div class="modal-overlay" id="project-modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:420px;">
+            <div class="modal-header">
+                <h3><i class="fa fa-briefcase"></i> پروژه جدید</h3>
+                <button class="icon-btn" id="close-project-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+                <input type="text" id="project-name-input" placeholder="نام پروژه (مثل کیدپاد)" style="padding:0.7rem; border-radius:10px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color);">
+                <input type="url" id="project-domain-input" placeholder="آدرس دامنه (مثل kidpod.ir)" style="padding:0.7rem; border-radius:10px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color); direction:ltr; text-align:left;">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <label style="font-size:0.9rem; color:var(--text-muted);">رنگ نماد</label>
+                    <input type="color" id="project-color-input" value="#6366f1" style="width:50px; height:36px; cursor:pointer;">
+                </div>
+                <button class="btn-primary" id="save-project-btn">ایجاد پروژه</button>
+                <p id="project-modal-error" class="text-muted" style="font-size:0.8rem; color:var(--danger-color); display:none;">نام پروژه الزامی است.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Bookmark Modal -->
+    <div class="modal-overlay" id="bookmark-modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:440px;">
+            <div class="modal-header">
+                <h3 id="bookmark-modal-title"><i class="fa fa-bookmark"></i> بوک‌مارک جدید</h3>
+                <button class="icon-btn" id="close-bookmark-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+                <input type="text" id="bookmark-title-input" placeholder="عنوان" style="padding:0.7rem; border-radius:10px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color);">
+                <input type="url" id="bookmark-url-input" placeholder="https://..." style="padding:0.7rem; border-radius:10px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color); direction:ltr; text-align:left;">
+                <div>
+                    <label style="font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:0.4rem;">دسته‌بندی</label>
+                    <div class="custom-select" id="bookmark-category-select"></div>
+                    <button type="button" class="btn-secondary" id="bookmark-ai-category-btn" style="margin-top:0.5rem; width:100%; font-size:0.8rem; padding:0.4rem;"><i class="fa fa-robot"></i> پیشنهاد دسته‌بندی با AI</button>
+                    <p id="bookmark-ai-category-status" class="text-muted" style="font-size:0.78rem; margin-top:0.3rem; display:none;"></p>
+                </div>
+                <div id="bookmark-new-category-wrap" style="display:none; gap:0.5rem;">
+                    <input type="text" id="bookmark-new-category-input" placeholder="نام دسته‌بندی جدید" style="flex:1; padding:0.6rem; border-radius:8px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color);">
+                </div>
+                <button class="btn-primary" id="save-bookmark-btn">افزودن بوک‌مارک</button>
+                <p id="bookmark-modal-error" class="text-muted" style="font-size:0.8rem; color:var(--danger-color); display:none;">عنوان و لینک الزامی هستند.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Description Modal (Quick Edit) -->
+    <div class="modal-overlay" id="task-desc-modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:480px;">
+            <div class="modal-header">
+                <h3 id="task-desc-modal-title" style="font-size:1rem;">توضیحات تسک</h3>
+                <button class="icon-btn" id="close-task-desc-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <textarea id="task-desc-textarea" placeholder="توضیحات، یادداشت یا جزئیات بیشتر برای این تسک..." style="width:100%; height:160px; padding:0.8rem; border-radius:12px; background:rgba(128,128,128,0.08); border:1px solid var(--glass-border); color:var(--text-color); resize:vertical; font-family:inherit;"></textarea>
+            <button class="btn-primary" style="margin-top:1rem; width:100%;" id="save-task-desc-btn">ذخیره</button>
+        </div>
+    </div>
+
+    <!-- Saved Tab Sessions Modal -->
+    <div class="modal-overlay" id="session-modal-overlay">
+        <div class="modal-content glass-panel" style="max-width:500px;">
+            <div class="modal-header">
+                <h3><i class="fa fa-layer-group"></i> نشست‌های تب‌های ذخیره‌شده</h3>
+                <button class="icon-btn" id="close-session-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div style="margin-bottom:1rem; display:flex; gap:0.5rem;">
+                <input type="text" id="session-name-input" placeholder="نام نشست تب‌های فعلی..." style="flex:1; padding:0.6rem; border-radius:10px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color);">
+                <button class="btn-primary" id="save-current-session-btn"><i class="fa fa-save"></i> ذخیره تب‌های باز</button>
+            </div>
+            <div id="saved-sessions-list" style="display:flex; flex-direction:column; gap:0.6rem; max-height:260px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal-overlay">
+        <div class="modal-content glass-panel" style="max-height:85vh; overflow-y:auto;">
+            <div class="modal-header">
+                <h3><i class="fa fa-cog"></i> تنظیمات داشبورد</h3>
+                <button class="icon-btn" id="close-settings-modal-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div class="settings-section">
+                <h4>ظاهر</h4>
+                <div class="settings-widget-row">
+                    <span>حالت شب/روز</span>
+                    <label class="switch">
+                        <input type="checkbox" id="settings-theme-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-widget-row" style="flex-direction:column; align-items:stretch; gap:0.5rem;">
+                    <span>رنگ اصلی</span>
+                    <div id="settings-accent-swatches" style="display:flex; gap:0.6rem;"></div>
+                </div>
+            </div>
+            <div class="settings-section" id="settings-desktop-section" data-desktop-only="1" hidden>
+                <h4>نسخه‌ی دسکتاپ</h4>
+                <div class="settings-widget-row">
+                    <span>اجرای خودکار ویرا با روشن‌شدن ویندوز</span>
+                    <label class="switch">
+                        <input type="checkbox" id="settings-autostart-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p class="text-muted" style="font-size:0.78rem; margin-top:0.5rem;">با بستن پنجره، ویرا به‌جای خروج، به Tray کنار ساعت ویندوز میره. میانبر <code style="direction:ltr; display:inline-block;">Ctrl+Shift+V</code> از هرجای ویندوز پنجره رو باز می‌کنه.</p>
+            </div>
+            <div class="settings-section">
+                <h4>دستیار هوش مصنوعی</h4>
+                <div class="settings-widget-row" style="flex-direction:column; align-items:stretch; gap:0.5rem;">
+                    <span>سطح تحلیل پیش‌فرض برای همه‌ی قابلیت‌های AI (سریع‌تر = کم‌هزینه‌تر، عمیق‌تر = دقیق‌تر ولی کندتر؛ گزینه‌ی «رایگان» فقط وقتی کار می‌کنه که همون سرویس پروکسی محلی مقاله‌نویس روی این کامپیوتر روشن باشه)</span>
+                    <div class="custom-select" id="settings-ai-effort"></div>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>یادآوری تلگرام</h4>
+                <p class="text-muted" style="font-size:0.78rem; margin:0 0 0.6rem;">وقتی چک/فاکتوری نزدیک سررسید یا سررسیدگذشته باشه، یه پیام تلگرام برات میاد (یک‌بار در روز، وقتی ویرا رو باز می‌کنی).</p>
+                <ol class="text-muted" style="font-size:0.78rem; margin:0 0 0.75rem; padding-inline-start:1.2rem; line-height:1.9;">
+                    <li>تو تلگرام دنبال ربات <code id="settings-telegram-bot-username" style="direction:ltr; display:inline-block;">در حال دریافت...</code> بگرد و بهش یه پیام (مثلاً «سلام») بفرست.</li>
+                    <li>بعد دکمه‌ی «دریافت خودکار Chat ID» رو اینجا بزن.</li>
+                </ol>
+                <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+                    <input type="text" id="settings-telegram-chatid" placeholder="Chat ID" style="flex:1; direction:ltr; text-align:left; padding:0.6rem; border-radius:8px; border:1px solid var(--glass-border); background:rgba(128,128,128,0.08); color:var(--text-color); font-family:monospace;">
+                    <button class="btn-secondary" id="settings-telegram-detect-btn" style="white-space:nowrap;"><i class="fa fa-magic"></i> دریافت خودکار Chat ID</button>
+                </div>
+                <button class="btn-primary" id="settings-telegram-test-btn" style="width:100%;"><i class="fa fa-paper-plane"></i> ارسال پیام تستی</button>
+                <p id="settings-telegram-status" class="text-muted" style="font-size:0.78rem; margin-top:0.5rem; display:none;"></p>
+            </div>
+            <div class="settings-section">
+                <h4>منطقه زمانی</h4>
+                <div class="settings-widget-row" style="flex-direction:column; align-items:stretch; gap:0.5rem;">
+                    <span>ساعت و تاریخ بالای صفحه بر اساس این منطقه زمانی نمایش داده می‌شود</span>
+                    <div class="custom-select" id="settings-timezone"></div>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>موقعیت آب و هوا</h4>
+                <div class="settings-widget-row" style="flex-direction:column; align-items:stretch; gap:0.5rem;">
+                    <span>ویجت آب و هوا برای این موقعیت نمایش داده می‌شود</span>
+                    <div class="custom-select" id="settings-weather-location"></div>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>بوک‌مارک‌ها</h4>
+                <div class="settings-widget-row" style="flex-direction:column; align-items:stretch; gap:0.5rem;">
+                    <span>کلیک روی بوک‌مارک چیکار کنه؟</span>
+                    <div class="custom-select" id="settings-bookmark-click"></div>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>نمایش ویجت‌ها</h4>
+                <p class="text-muted" style="font-size:0.76rem; margin:0 0 0.5rem;">می‌تونی ترتیب ویجت‌ها رو هم مستقیم تو داشبورد، با گرفتن و کشیدن گوشه‌ی هر ویجت، تغییر بدی.</p>
+                <div id="widget-visibility-list"></div>
+            </div>
+            <div class="settings-section">
+                <h4>پشتیبان‌گیری و همگام‌سازی (Backup & Restore)</h4>
+                <div style="display:flex; gap:0.75rem; margin-top:0.5rem;">
+                    <button class="btn-primary" id="export-backup-btn" style="flex:1;"><i class="fa fa-download"></i> دانلود فایل بکاپ (JSON)</button>
+                    <button class="btn-secondary" id="import-backup-btn" style="flex:1;"><i class="fa fa-upload"></i> بازیابی از بکاپ</button>
+                    <input type="file" id="import-backup-file" accept=".json" style="display:none;">
+                </div>
+            </div>
+            <div class="settings-section">
+                <h4>سایر</h4>
+                <button class="btn-secondary" id="reset-fun-widgets-btn">ریست گربه و حالت روحی</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="vendor/highlightjs/highlight.min.js"></script>
+    <script src="vendor/jalaali/jalaali.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/tools-extra.js"></script>
+</body>
+</html>
